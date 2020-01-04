@@ -3,7 +3,7 @@ from FaceDetector_class import *
 
 if __name__ == '__main__':
 	face_detector = FaceDetector()
-	img = cv2.imread('test2.jpg')
+	img = cv2.imread('test4.jpg')
 	faces = face_detector.FaceDetect(img)
 	print(len(faces))
 

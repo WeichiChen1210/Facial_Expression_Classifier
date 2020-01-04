@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -17,96 +11,13 @@ import torchvision.transforms as transforms
 
 from torchviz import make_dot, make_dot_from_trace
 
-from torchsummary import summary
+# from torchsummary import summary
 
 from PIL import Image
 
 import numpy as np
 import time
 from os.path import join, exists
-
-from FaceDetector_class import *
-
-
-# In[2]:
-
-
-# Hyperparameters
-cfg = {
-    'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-    'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-    'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
-    'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
-}
-
-labels = {
-    'Angry': 0,
-    'Disgust': 1,
-    'Fear': 2,
-    'Happy': 3,
-    'Sad': 4,
-    'Surprise': 5,
-    'Neutral': 6
-}
-
-CIFAR_MEAN = [0.49139968, 0.48215827, 0.44653124]
-CIFAR_STD = [0.2023, 0.1994, 0.2010]
-
-EPOCHS = 20
-BATCH_SIZE = 32
-PRINT_FREQ = 100
-TRAIN_NUMS = 30016
-
-CUDA = True
-
-PATH_TO_SAVE_DATA = "./"
-
-TRAIN_PATH = "./dataset/fer2013/train/"
-VAL_PATH = "./dataset/fer2013/val/"
-TEST_PATH = "./dataset/fer2013/test/"
-
-DATASET_PATH = "./dataset/fer2013/"
-MODEL_PATH = "./model/model.pth"
-
-
-# In[3]:
-
-
-data_transforms = {
-    'train': transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.Grayscale(),
-        transforms.ToTensor()
-    ]),
-    'test': transforms.Compose([
-        transforms.Grayscale(),
-        transforms.ToTensor()
-    ])
-}
-
-image_datasets = {x: datasets.ImageFolder(join(DATASET_PATH, x), data_transforms[x]) for x in ['train', 'test']}
-n_train = len(image_datasets['train'])
-dataloader = {}
-dataloader['train'] = DataLoader(image_datasets['train'], batch_size=BATCH_SIZE, sampler=SubsetRandomSampler(range(TRAIN_NUMS)), num_workers=4)
-dataloader['val'] = DataLoader(image_datasets['train'], batch_size=BATCH_SIZE, sampler=SubsetRandomSampler(range(TRAIN_NUMS, n_train)), num_workers=4)
-dataloader['test'] = DataLoader(image_datasets['test'], batch_size=BATCH_SIZE, num_workers=4)
-# dataloader = {x: DataLoader(image_datasets[x], batch_size=32, shuffle=True, num_workers=4) for x in ['train', 'test']}
-
-
-# In[9]:
-
-
-# CUDA
-# testing CUDA is available or not
-if CUDA:
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-else:
-    device = torch.device("cpu")
-print(device)
-
-
-# In[6]:
-
 
 # Training class
 class Trainer:
@@ -183,10 +94,7 @@ class Trainer:
 
         return acc
 
-
-# In[3]:
-
-
+# model definition
 class VGG(nn.Module):
     def __init__(self, num_classes=7, model_type='VGG11'):
         super(VGG, self).__init__()
@@ -195,12 +103,12 @@ class VGG(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.classifier = nn.Sequential(
             nn.Linear(512 * 1 * 1, 7),
-#             nn.ReLU(True),
-#             nn.Dropout(),
-#             nn.Linear(4096, 4096),
-#             nn.ReLU(True),
-#             nn.Dropout(),
-#             nn.Linear(4096, num_classes),
+            # nn.ReLU(True),
+            # nn.Dropout(),
+            # nn.Linear(4096, 4096),
+            # nn.ReLU(True),
+            # nn.Dropout(),
+            # nn.Linear(4096, num_classes),
         )
     
     def forward(self, x):
@@ -227,56 +135,108 @@ class VGG(nn.Module):
         return nn.Sequential(*layers)
 
 
-# In[8]:
+if __name__ == "__main__":
+    # Hyperparameters
+    cfg = {
+        'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+        'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+        'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+        'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
+    }
+
+    labels = {
+        'Angry': 0,
+        'Disgust': 1,
+        'Fear': 2,
+        'Happy': 3,
+        'Sad': 4,
+        'Surprise': 5,
+        'Neutral': 6
+    }
+
+    # MEAN = [0.49139968, 0.48215827, 0.44653124]
+    # STD = [0.2023, 0.1994, 0.2010]
+    MEAN = [0.49139968]
+    STD = [0.2023]
+
+    EPOCHS = 20
+    BATCH_SIZE = 32
+    PRINT_FREQ = 100
+    TRAIN_NUMS = 29000
+    LEARNING_RATE = 1e-3
+
+    CUDA = True
+
+    PATH_TO_SAVE_DATA = "./"
+
+    TRAIN_PATH = "./dataset/fer2013/train/"
+    VAL_PATH = "./dataset/fer2013/val/"
+    TEST_PATH = "./dataset/fer2013/test/"
+
+    DATASET_PATH = "./dataset/fer2013/"
+    MODEL_PATH = "./model/model.pth"
+
+    # data transforms
+    data_transforms = {
+        'train': transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.Grayscale(),
+            transforms.ToTensor(),
+            transforms.Normalize(MEAN, STD)
+        ]),
+        'test': transforms.Compose([
+            transforms.Grayscale(),
+            transforms.ToTensor()
+        ])
+    }
+
+    # prepare datasets
+    image_datasets = {x: datasets.ImageFolder(join(DATASET_PATH, x), data_transforms[x]) for x in ['train', 'test']}
+    n_train = len(image_datasets['train'])
+    n_test = len(image_datasets['test'])
+    print("training: " + str(n_train) + " images")
+    print("testing: " + str(n_test) + " images")
+    dataloader = {}
+    dataloader['train'] = DataLoader(image_datasets['train'], batch_size=BATCH_SIZE, sampler=SubsetRandomSampler(range(TRAIN_NUMS)), num_workers=4)
+    dataloader['val'] = DataLoader(image_datasets['train'], batch_size=BATCH_SIZE, sampler=SubsetRandomSampler(range(TRAIN_NUMS, n_train)), num_workers=4)
+    dataloader['test'] = DataLoader(image_datasets['test'], batch_size=BATCH_SIZE, num_workers=4)
+    # dataloader = {x: DataLoader(image_datasets[x], batch_size=32, shuffle=True, num_workers=4) for x in ['train', 'test']}
+
+    # CUDA
+    # testing CUDA is available or not
+    if CUDA:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    else:
+        device = torch.device("cpu")
+    print(device)
+
+    # construct a model
+    model = VGG(model_type='VGG11')
+    model.cuda()
+    # summary(model, (1, 48, 48))
+
+    # define loss, optimizer and scheduler
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.SGD(params=model.parameters(),lr=LEARNING_RATE, momentum=0.9, weight_decay=1e-4) # weight_decay can be smaller
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
+
+    # start training
+    trainer = Trainer(criterion, optimizer, device)
+    trainer.train_loop(model, dataloader['train'], dataloader['val'])
+    trainer.test(model, dataloader['test'])
+
+    torch.save(model.state_dict(), MODEL_PATH)
 
 
-model = VGG(model_type='VGG11')
-model.cuda()
-summary(model, (1, 48, 48))
-
-
-# In[9]:
-
-
-# define loss, optimizer and scheduler
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(params=model.parameters(),lr=1e-2, momentum=0.9, weight_decay=1e-3) # weight_decay can be smaller
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=EPOCHS)
-
-
-# In[10]:
-
-
-# start training
-trainer = Trainer(criterion, optimizer, device)
-trainer.train_loop(model, dataloader['train'], dataloader['val'])
-trainer.test(model, dataloader['test'])
-
-
-# In[12]:
-
-
-torch.save(model.state_dict(), MODEL_PATH)
-
-
-# In[4]:
-
-
+"""
 new_model = VGG(model_type='VGG11')
 new_model.load_state_dict(torch.load(MODEL_PATH))
 new_model.eval()
 new_model.cuda()
 
 
-# In[5]:
-
-
 import cv2
 from FaceDetector_class import *
-
-
-# In[12]:
-
 
 face_detector = FaceDetector()
 img = cv2.imread('test2.jpg')
@@ -293,10 +253,6 @@ print(len(crop_images))
 #     cv2.imshow('Face Detection',crop_image)
 #     cv2.waitKey(0)
 # cv2.destroyAllWindows()
-
-
-# In[10]:
-
 
 # new_img = Image.open('00000.jpg').convert('LA')
 # new_img = loader(new_img).unsqueeze(1) # why squeeze 1?
@@ -317,9 +273,5 @@ img = img.to(device)
 print(type(img))
 out = new_model(img)
 
-
-# In[11]:
-
-
 print(out)
-
+"""
