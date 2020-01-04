@@ -137,6 +137,8 @@ class VGG(nn.Module):
 
 if __name__ == "__main__":
     # Hyperparameters
+    model_type = 'VGG16'
+
     cfg = {
         'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
         'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
@@ -182,7 +184,7 @@ if __name__ == "__main__":
             transforms.RandomHorizontalFlip(),
             transforms.Grayscale(),
             transforms.ToTensor(),
-            transforms.Normalize(MEAN, STD)
+            # transforms.Normalize(MEAN, STD)
         ]),
         'test': transforms.Compose([
             transforms.Grayscale(),
@@ -211,7 +213,7 @@ if __name__ == "__main__":
     print(device)
 
     # construct a model
-    model = VGG(model_type='VGG11')
+    model = VGG(model_type=model_type)
     model.cuda()
     # summary(model, (1, 48, 48))
 
@@ -222,56 +224,12 @@ if __name__ == "__main__":
 
     # start training
     trainer = Trainer(criterion, optimizer, device)
+    start_time = time.time()
     trainer.train_loop(model, dataloader['train'], dataloader['val'])
     trainer.test(model, dataloader['test'])
+    end_time = time.time()
 
+    print("--- %s sec ---" % (end_time - start_time))
+
+    # save model
     torch.save(model.state_dict(), MODEL_PATH)
-
-
-"""
-new_model = VGG(model_type='VGG11')
-new_model.load_state_dict(torch.load(MODEL_PATH))
-new_model.eval()
-new_model.cuda()
-
-
-import cv2
-from FaceDetector_class import *
-
-face_detector = FaceDetector()
-img = cv2.imread('test2.jpg')
-faces = face_detector.FaceDetect(img)
-print(len(faces))
-
-crop_images = []
-if len(faces) > 0:
-    for (x,y,width,height) in faces:
-        #cv2.rectangle(img, (x,y), (x + width,y + height), (255,0,0), 3)
-        crop_images.append(img[y:y + height, x:x+width])
-print(len(crop_images))
-# for crop_image in crop_images:
-#     cv2.imshow('Face Detection',crop_image)
-#     cv2.waitKey(0)
-# cv2.destroyAllWindows()
-
-# new_img = Image.open('00000.jpg').convert('LA')
-# new_img = loader(new_img).unsqueeze(1) # why squeeze 1?
-# print(new_img.shape)
-
-# print(type(crop_images[1]))
-img = crop_images[0]
-# cv2.imshow('Face Detection',crop_image)
-# cv2.waitKey(0)
-img = Image.fromarray(img)
-img = img.convert('LA')
-img = img.resize((48, 48))
-loader = transforms.Compose([
-    transforms.ToTensor()])
-img = loader(img).unsqueeze(1)
-print(img.shape)
-img = img.to(device)
-print(type(img))
-out = new_model(img)
-
-print(out)
-"""
