@@ -16,7 +16,7 @@ class FaceDetector:
 			img_gray,
 			scaleFactor=1.1,
 			minNeighbors=5,
-			minSize=(50,50),
+			minSize=(100,100),
 			flags=cv2.CASCADE_SCALE_IMAGE
 		)
 		return faces
